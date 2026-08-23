@@ -1,13 +1,14 @@
 name: Run Stock Scanner
 
 on:
-  schedule:
-    - cron: '30 14 * * 1-5'
-  workflow_dispatch:
+  workflow_dispatch:  # מאפשר הרצה ידנית מתי שתרצה
+  # schedule:
+  #   - cron: '0 13 * * 1-5'  # אופציונלי: הרצה אוטומטית בימי חול
 
 jobs:
   run-scanner:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -19,7 +20,11 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install yfinance pandas requests
 
       - name: Run script
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         run: python scanner.py
