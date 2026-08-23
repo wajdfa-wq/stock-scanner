@@ -1,9 +1,9 @@
 name: Run Stock Scanner
 
 on:
-  workflow_dispatch:  # מאפשר הרצה ידנית מתי שתרצה
-  # schedule:
-  #   - cron: '0 13 * * 1-5'  # אופציונלי: הרצה אוטומטית בימי חול
+  workflow_dispatch:  # מאפשר גם הרצה ידנית מתי שתרצה
+  schedule:
+    - cron: '0 13 * * 1-5'  # רץ אוטומטית בימים שני עד שישי בשעה 16:00 שעון ישראל
 
 jobs:
   run-scanner:
