@@ -3,23 +3,39 @@ import pandas as pd
 import requests
 import io
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
+# שליפת פרטי המייל מתוך ה-Secrets של GitHub
+EMAIL_USER = os.environ.get("EMAIL_USER")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 
-def send_telegram_message(message):
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID,
-        "text": message,
-        "parse_mode": "Markdown"
-    }
+def send_email(message_body):
+    if not EMAIL_USER or not EMAIL_PASSWORD:
+        print("שגיאה: פרטי המייל לא הוגדרו כהלכה ב-Secrets של GitHub.")
+        return
+
+    recipient = EMAIL_USER  # שולח את המייל אל עצמך
+    subject = "🚨 תוצאות סורק המומנטום 🚨"
+
+    msg = MIMEMultipart()
+    msg['From'] = EMAIL_USER
+    msg['To'] = recipient
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(message_body, 'plain', 'utf-8'))
+
     try:
-        response = requests.post(url, json=payload, timeout=10)
-        print("תשובת טלגרם:", response.text)
-        return response.json()
+        # התחברות מאובטחת לשרת ה-SMTP של Gmail
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(EMAIL_USER, EMAIL_PASSWORD)
+        server.sendmail(EMAIL_USER, recipient, msg.as_string())
+        server.quit()
+        print("המייל נשלח בהצלחה תיבת הדואר שלך!")
     except Exception as e:
-        print(f"שגיאה בשליחת הודעה: {e}")
+        print(f"שגיאה בשליחת המייל: {e}")
 
 def get_all_us_tickers():
     try:
@@ -84,11 +100,11 @@ def scan_momentum_stocks():
     if not df.empty:
         df = df.sort_values(by="Change %", ascending=False)
         df_top = df.head(20)
-        msg = "🚨 *תוצאות סורק המומנטום* 🚨\n\n```\n" + df_top.to_string(index=False) + "\n```"
+        msg = "תוצאות סורק המומנטום:\n\n" + df_top.to_string(index=False)
     else:
         msg = "סורק המומנטום סיים את הבדיקה: לא נמצאו מניות העונות על הקריטריונים היום."
         
-    send_telegram_message(msg)
+    send_email(msg)
     print("התהליך הסתיים!")
 
 scan_momentum_stocks()
