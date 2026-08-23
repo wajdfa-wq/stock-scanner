@@ -4,7 +4,7 @@ import requests
 import io
 
 # הגדרות הבוט שלך
-TELEGRAM_TOKEN = "Wajdstockscannerbot"
+TELEGRAM_TOKEN = "8948426809:AAG5Kzm9e2fR1NLnmS7370zMNoZWEplwG40"
 CHAT_ID = "640397492"
 
 def send_telegram_message(message):
