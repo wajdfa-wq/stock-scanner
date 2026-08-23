@@ -21,7 +21,6 @@ def send_telegram_message(message):
         print(f"שגיאה: {e}")
 
 def get_all_us_tickers():
-    # הורדת רשימת כל המניות הנסחרות בארה"ב ממקור ציבורי
     try:
         url = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
         s = requests.get(url).content
@@ -31,25 +30,20 @@ def get_all_us_tickers():
         s_other = requests.get(url_other).content
         other = pd.read_csv(io.BytesIO(s_other), sep='|')
         
-        # איסוף הסימולים וסינון תווים לא רצויים
         tickers = list(nasdaq['Symbol'].dropna()) + list(other['NASDAQ Symbol'].dropna())
-        # ניקוי סימולים עם רווחים או אותיות מיוחדות (כמו מעקפי ווראנטים)
         clean_tickers = [t.strip() for t in tickers if isinstance(t, str) and '^' not in t and '.' not in t and '$' not in t]
         return list(set(clean_tickers))
     except Exception as e:
         print(f"שגיאה בהורדת רשימת המניות: {e}")
-        # רשימת גיבוי למקרה חירום אם ההורדה נכשלת
         return ["JUNS", "NCTY", "BRNX", "SUJA", "VWAV", "SUGP"]
 
 def scan_momentum_stocks():
     print("מוריד את רשימת כל המניות בבורסה...")
     tickers_to_check = get_all_us_tickers()
-    print( נמצאו סה\"כ {len(tickers_to_check)} מניות לסריקה. מתחיל בבדיקה...")
+    print("נמצאו סך הכל מניות לסריקה. מתחיל בבדיקה...")
     
     results = []
     
-    # אופציונלי: כדי שהריצה בענן לא תתרסק על אלפי מניות בבת אחת, 
-    # ניתן לסרוק או להגביל לפי הצורך, או להריץ על כולם.
     for ticker in tickers_to_check:
         try:
             stock = yf.Ticker(ticker)
@@ -60,7 +54,6 @@ def scan_momentum_stocks():
                 
             price = hist['Close'].iloc[-1]
             
-            # סינון מקדים מהיר לפי מחיר לפני שמושכים את כל המידע הכבד (info)
             if price >= 10:
                 continue
                 
@@ -89,7 +82,6 @@ def scan_momentum_stocks():
     
     if not df.empty:
         df = df.sort_values(by="Change %", ascending=False)
-        # אם יש יותר מדי תוצאות, נשלח את הטובות ביותר כדי לא להציף את הטלגרם
         df_top = df.head(20)
         msg = "🚨 *תוצאות סורק המומנטום (כל השוק)* 🚨\n\n```\n" + df_top.to_string(index=False) + "\n```"
     else:
@@ -98,5 +90,4 @@ def scan_momentum_stocks():
     send_telegram_message(msg)
     print("התוצאות נשלחו בהצלחה לטלגרם!")
 
-# הפעלת הפונקציה
 scan_momentum_stocks()
