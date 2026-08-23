@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import io
 
-# הגדרות הבוט שלך
+# הגדרות הבוט שלך ישירות בקוד
 TELEGRAM_TOKEN = "8948426809:AAG5Kzm9e2R1NLnmS737"
 CHAT_ID = "640397492"
 
@@ -16,6 +16,7 @@ def send_telegram_message(message):
     }
     try:
         response = requests.post(url, json=payload, timeout=10)
+        print("תשובת טלגרם:", response.text)
         return response.json()
     except Exception as e:
         print(f"שגיאה בשליחת הודעה: {e}")
@@ -40,12 +41,11 @@ def get_all_us_tickers():
 def scan_momentum_stocks():
     print("מוריד את רשימת כל המניות בבורסה...")
     tickers_to_check = get_all_us_tickers()
-    print(f"נמצאו {len(tickers_to_check)} מניות לסריקה. מתחיל בבדיקה...")
+    print(f"נמצאו {len(tickers_to_check)} מניות לסריקה. מתחיל בדיקה...")
     
     results = []
     
-    # כדי שהריצה תהיה מהירה ולא תיעצר, נסרוק דגימה או נעבור בזריזות
-    for ticker in tickers_to_check[:1500]: # מגביל ל-1500 מניות הראשונות לבדיקה מהירה ובטוחה
+    for ticker in tickers_to_check[:1500]:
         try:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="5d", timeout=5)
@@ -89,6 +89,6 @@ def scan_momentum_stocks():
         msg = "סורק המומנטום סיים את הבדיקה: לא נמצאו מניות העונות על הקריטריונים היום."
         
     send_telegram_message(msg)
-    print("התוצאות נשלחו בהצלחה לטלגרם!")
+    print("התהליך הסתיים!")
 
 scan_momentum_stocks()
