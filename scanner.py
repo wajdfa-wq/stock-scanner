@@ -4,7 +4,7 @@ import requests
 import io
 
 # הגדרות הבוט שלך ישירות בקוד
-TELEGRAM_TOKEN = "8948426809:AAG5Kzm9e2R1NLnmS737"
+TELEGRAM_TOKEN = "8948426809:AAFL-OJR2JgrYBoyH5x2CNbOkjpp8vojtE4"
 CHAT_ID = "640397492"
 
 def send_telegram_message(message):
