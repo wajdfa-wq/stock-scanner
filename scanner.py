@@ -2,10 +2,10 @@ import yfinance as yf
 import pandas as pd
 import requests
 import io
+import os
 
-# הגדרות הבוט שלך ישירות בקוד
-TELEGRAM_TOKEN = "8948426809:AAFL-OJR2JgrYBoyH5x2CNbOkjpp8vojtE4"
-CHAT_ID = "640397492"
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+CHAT_ID = os.environ.get("640397492")
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
