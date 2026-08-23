@@ -4,7 +4,7 @@ import requests
 import io
 
 # הגדרות הבוט שלך
-TELEGRAM_TOKEN = "8948426809:AAG5Kzm9e2fR1NLnmS7370zMNoZWEplwG40"
+TELEGRAM_TOKEN = "8948426809:AAG5Kzm9e2R1NLnmS737"
 CHAT_ID = "640397492"
 
 def send_telegram_message(message):
@@ -15,19 +15,19 @@ def send_telegram_message(message):
         "parse_mode": "Markdown"
     }
     try:
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=10)
         return response.json()
     except Exception as e:
-        print(f"שגיאה: {e}")
+        print(f"שגיאה בשליחת הודעה: {e}")
 
 def get_all_us_tickers():
     try:
         url = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
-        s = requests.get(url).content
+        s = requests.get(url, timeout=15).content
         nasdaq = pd.read_csv(io.BytesIO(s), sep='|')
         
         url_other = "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt"
-        s_other = requests.get(url_other).content
+        s_other = requests.get(url_other, timeout=15).content
         other = pd.read_csv(io.BytesIO(s_other), sep='|')
         
         tickers = list(nasdaq['Symbol'].dropna()) + list(other['NASDAQ Symbol'].dropna())
@@ -35,19 +35,20 @@ def get_all_us_tickers():
         return list(set(clean_tickers))
     except Exception as e:
         print(f"שגיאה בהורדת רשימת המניות: {e}")
-        return ["JUNS", "NCTY", "BRNX", "SUJA", "VWAV", "SUGP"]
+        return ["AAPL", "AMD", "TSLA", "F", "PLTR"]
 
 def scan_momentum_stocks():
     print("מוריד את רשימת כל המניות בבורסה...")
     tickers_to_check = get_all_us_tickers()
-    print("נמצאו סך הכל מניות לסריקה. מתחיל בבדיקה...")
+    print(f"נמצאו {len(tickers_to_check)} מניות לסריקה. מתחיל בבדיקה...")
     
     results = []
     
-    for ticker in tickers_to_check:
+    # כדי שהריצה תהיה מהירה ולא תיעצר, נסרוק דגימה או נעבור בזריזות
+    for ticker in tickers_to_check[:1500]: # מגביל ל-1500 מניות הראשונות לבדיקה מהירה ובטוחה
         try:
             stock = yf.Ticker(ticker)
-            hist = stock.history(period="5d")
+            hist = stock.history(period="5d", timeout=5)
             
             if hist.empty or len(hist) < 2:
                 continue
@@ -83,9 +84,9 @@ def scan_momentum_stocks():
     if not df.empty:
         df = df.sort_values(by="Change %", ascending=False)
         df_top = df.head(20)
-        msg = "🚨 *תוצאות סורק המומנטום (כל השוק)* 🚨\n\n```\n" + df_top.to_string(index=False) + "\n```"
+        msg = "🚨 *תוצאות סורק המומנטום* 🚨\n\n```\n" + df_top.to_string(index=False) + "\n```"
     else:
-        msg = "סורק המומנטום סרק את כל השוק: לא נמצאו מניות העונות על הקריטריונים היום."
+        msg = "סורק המומנטום סיים את הבדיקה: לא נמצאו מניות העונות על הקריטריונים היום."
         
     send_telegram_message(msg)
     print("התוצאות נשלחו בהצלחה לטלגרם!")
